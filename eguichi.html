@@ -48,21 +48,23 @@ img{-webkit-user-drag:none;pointer-events:none}
 .board::before{content:"";position:absolute;inset:4px;border-radius:0;z-index:0;pointer-events:none;
   background:radial-gradient(120% 90% at 50% 45%,rgba(0,0,0,.84),rgba(0,0,0,.66));transition:background .6s}
 .frac{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0}
-.lbl{display:flex;align-items:center;gap:.7em;font-size:clamp(15px,5.6vh,26px);letter-spacing:.3em;padding-left:.3em;line-height:1.1;color:#e2e1dd;
+.lbl{display:flex;align-items:center;gap:.7em;white-space:nowrap;flex:none;font-size:clamp(14px,5vh,26px);letter-spacing:.24em;padding-left:.3em;line-height:1.1;color:#e2e1dd;
   -webkit-mask-image:var(--dry);mask-image:var(--dry);-webkit-mask-size:100% 100%;mask-size:100% 100%}
-.lbl::before,.lbl::after{content:"";width:clamp(18px,5vw,48px);height:2px;background:currentColor;opacity:.8}
+.lbl::before,.lbl::after{content:"";flex:none;width:clamp(18px,4.5vw,48px);height:2px;background:currentColor;opacity:.8}
 .inkwrap{filter:drop-shadow(0 2px 0 #000) drop-shadow(0 0 10px rgba(0,0,0,.9));width:100%;display:flex;justify-content:center}
-.num{font-family:"EgBrush",serif;line-height:1;height:1.12em;font-size:clamp(30px,min(21vh,11vw),128px);
+.num{font-family:"EgBrush",serif;line-height:1;height:1.12em;font-size:clamp(30px,min(19vh,11vw),128px);
   width:100%;text-align:center;border:1px dashed transparent;border-radius:10px;padding:0;margin:0;background:transparent;color:var(--ink-text);
   font-variant-numeric:tabular-nums;-moz-appearance:textfield;appearance:textfield;caret-color:var(--shu);outline:none;
   -webkit-mask-image:var(--dry);mask-image:var(--dry);-webkit-mask-size:100% 100%;mask-size:100% 100%;transition:color .5s}
 .num::-webkit-outer-spin-button,.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .num:focus{border-color:#ffffff55;-webkit-mask-image:none;mask-image:none}
 canvas.rule{width:82%;height:clamp(10px,4vh,18px);display:block;margin:1px 0}
-.pct{position:relative;z-index:2;display:flex;align-items:baseline;justify-content:center;gap:0 12px;flex-wrap:wrap;padding-top:2px}
-.pct .val{font-family:"EgBrush",serif;font-size:clamp(28px,min(17vh,8vw),100px);line-height:1;display:inline-block;color:var(--ink-text);
+.pct{position:relative;z-index:2;display:flex;align-items:baseline;justify-content:center;gap:0 12px;flex-wrap:wrap;margin-top:clamp(4px,2vh,14px);padding-top:clamp(4px,1.6vh,10px)}
+.pct::before{content:"";position:absolute;left:12%;right:12%;top:0;height:1px;background:linear-gradient(90deg,transparent,#ffffff66,transparent)}
+.pct .val{font-family:"EgBrush",serif;font-size:clamp(26px,min(14.5vh,7.5vw),96px);line-height:1;display:inline-block;color:var(--ink-text);
   -webkit-mask-image:var(--dry);mask-image:var(--dry);-webkit-mask-size:100% 100%;mask-size:100% 100%;transition:color .5s}
 .pct .val small{font-size:.5em;margin-left:.06em}
+.pct .val .dp{font-family:"Hiragino Sans","Noto Sans JP",sans-serif;font-weight:900;margin:0 -.02em}
 .pct .sub{font-family:"EgBrush",serif;font-size:clamp(12px,3.4vh,15px);color:#77756f}
 .bump{animation:bump .3s ease-out}
 @keyframes bump{from{transform:scale(1.12);filter:blur(.6px)}to{transform:none;filter:none}}
@@ -100,7 +102,7 @@ button canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer
 .bt{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;flex:1}
 button b{font-weight:400;font-size:clamp(16px,5.4vh,23px);letter-spacing:.08em;line-height:1.15}
 button span{font-family:"EgBrush",serif;font-size:clamp(9px,2.6vh,11px);letter-spacing:.04em;opacity:.8;border-top:1px solid #ffffff55;padding-top:2px;margin-top:2px;white-space:nowrap}
-.ic{position:relative;z-index:1;font-style:normal;font-family:"Hiragino Sans",sans-serif;font-weight:700;font-size:clamp(20px,7.5vh,34px);line-height:1;opacity:.92}
+.ic{position:relative;z-index:1;flex:none;width:clamp(20px,7vh,32px);height:clamp(20px,7vh,32px);opacity:.92;filter:drop-shadow(0 1px 0 #000)}
 button:active{transform:scale(.96)}
 button:focus-visible{outline:2px solid #ffffff88;outline-offset:2px}
 .hit{min-height:clamp(54px,19vh,76px)}
@@ -147,10 +149,10 @@ button:focus-visible{outline:2px solid #ffffff88;outline-offset:2px}
     <div class="pct" aria-label="当たり確率"><div class="inkwrap" style="width:auto"><div class="val" id="pct">0.0<small>%</small></div></div><div class="sub" id="sub"></div></div>
   </div>
   <div class="pad">
-    <button class="hit" id="btnHit"><canvas aria-hidden="true"></canvas><div class="bt"><b>当たり</b><span>当たり・残り −1</span></div><i class="ic">〇</i></button>
-    <button class="miss" id="btnMiss"><canvas aria-hidden="true"></canvas><div class="bt"><b>ハズレ</b><span>残り −1</span></div><i class="ic">✕</i></button>
-    <button class="ghost" id="btnUndo"><canvas aria-hidden="true"></canvas><div class="bt"><b>一つ戻す</b></div><i class="ic">↺</i></button>
-    <button class="ghost" id="btnReset"><canvas aria-hidden="true"></canvas><div class="bt"><b>リセット</b></div><i class="ic">«</i></button>
+    <button class="hit" id="btnHit"><canvas aria-hidden="true"></canvas><div class="bt"><b>当たり</b><span>当たり・残り −1</span></div><svg class="ic" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 5c9 0 15 6.5 15 15s-6.5 15-15 15S5 28.5 5 20 11.2 5.2 19 5" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round"/></svg></button>
+    <button class="miss" id="btnMiss"><canvas aria-hidden="true"></canvas><div class="bt"><b>ハズレ</b><span>残り −1</span></div><svg class="ic" viewBox="0 0 40 40" aria-hidden="true"><path d="M8 7 33 34M33 6 7 33" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="36" cy="36" r="1.6" fill="currentColor"/></svg></button>
+    <button class="ghost" id="btnUndo"><canvas aria-hidden="true"></canvas><div class="bt"><b>一つ戻す</b></div><svg class="ic" viewBox="0 0 40 40" aria-hidden="true"><path d="M10 14a13 13 0 1 1-2 9" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round"/><path d="M4 7l6 8 8-5" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="ghost" id="btnReset"><canvas aria-hidden="true"></canvas><div class="bt"><b>リセット</b></div><svg class="ic" viewBox="0 0 40 40" aria-hidden="true"><path d="M22 8 9 20l13 12M34 8 21 20l13 12" fill="none" stroke="currentColor" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>
 </div>
 <div class="cutin" id="cutin" aria-hidden="true"><canvas id="cutCv"></canvas><b id="cutTxt"></b></div>
@@ -456,9 +458,10 @@ function drawEmb(dt){
   const breath = .93 + .07 * Math.sin(t * .9);
   for (let y = 0; y < D; y += strip) {
     const off = (Math.sin(y * .045 + t * 1.6) * 2.4 + Math.sin(y * .013 - t * .7) * 4) * (1 + .6 * Math.sin(t * .5));
-    g.globalAlpha = breath; g.drawImage(embPre, 0, y / D * ih, iw, strip / D * ih + 1, x0 + off, y0 + y, D, strip + .6);
+    g.drawImage(embPre, 0, Math.floor(y / D * ih), iw, Math.ceil(strip / D * ih) + 2, x0 + off, y0 + y - .5, D, strip + 2);
   }
   g.restore();
+  g.globalAlpha = 1 - breath; g.fillStyle = "#000"; g.beginPath(); g.arc(EW / 2, EH / 2, D * .56, 0, TAU); g.fill(); g.globalAlpha = 1;
   // 縁を煙に溶かす
   const eg = g.createRadialGradient(EW / 2, EH / 2, D * .38, EW / 2, EH / 2, D * .56); eg.addColorStop(0, "rgba(2,2,2,0)"); eg.addColorStop(1, "rgba(2,2,2,.9)");
   g.globalCompositeOperation = "destination-out"; g.globalAlpha = .55; g.fillStyle = eg; g.fillRect(0, 0, EW, EH); g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
@@ -530,7 +533,7 @@ function render(changed){
   if (document.activeElement !== $("hit")) $("hit").value = state.hit;
   if (document.activeElement !== $("rest")) $("rest").value = state.rest;
   const v = +(state.rest ? state.hit / state.rest * 100 : 0).toFixed(1);
-  $("pct").innerHTML = v.toFixed(1) + "<small>%</small>";
+  $("pct").innerHTML = v.toFixed(1).replace(".", '<span class="dp">.</span>') + "<small>%</small>";
   $("sub").textContent = !state.rest ? "数字をタップして入力" : state.hit ? "約" + (state.rest / state.hit).toFixed(1) + "口に1つ" : "当たりは残っていません";
   const n = v >= 50 ? 3 : v >= 40 ? 2 : v >= 30 ? 1 : 0, cl = document.body.classList;
   cl.toggle("lv1", n === 1); cl.toggle("lv2", n === 2); cl.toggle("lv3", n === 3);
