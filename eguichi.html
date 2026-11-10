@@ -548,10 +548,12 @@ function shapePaths(kind){
   if (kind === "cross") return [{ pts: curve([cx - R * .95, cy - R * .85], [cx + R * .95, cy + R * .85], R * .08, 50), w: R * .12 },
                                 { pts: curve([cx + R * .95, cy - R * .85], [cx - R * .95, cy + R * .85], -R * .08, 50), w: R * .12 }];
   if (kind === "moon") return [{ pts: arc(R * 1.12, 2.2, 5.6, 120, .03), w: R * .16, press: t => Math.sin(Math.PI * t) * 1.15 }];
+  if (kind === "rmoon") return [{ pts: arc(R * 1.12, -.95, 1.35, 100, .03), w: R * .15, press: t => Math.sin(Math.PI * t) * 1.15 }];
   if (kind === "uzu") { const o = []; for (let i = 0; i <= 220; i++) { const t = i / 220, a = -2 + t * TAU * 1.7, r = R * (1.18 - .72 * t); o.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } return [{ pts: o, w: R * .09, press: t => 1 - .55 * t }]; }
   /* nijuu */ return [{ pts: arc(R * 1.16, -2.4, -2.4 + TAU * .62, 130), w: R * .11 }, { pts: arc(R * .98, .6, .6 + TAU * .55, 120), w: R * .08 }];
 }
-const SHAPES = ["enso", "issen", "cross", "moon", "uzu", "nijuu"];
+// 顔にかからない形だけ（顔の外側をなぞる）
+const SHAPES = ["enso", "moon", "rmoon", "nijuu"];
 let lastShape = "", shapeBag = [];
 function makeEnso(lv, kind){ // 形を1回描いておき、筆の進む順に見せる
   if (!kind) { if (!shapeBag.length) { shapeBag = SHAPES.slice().sort(() => rnd() - .5); if (shapeBag[0] === lastShape) shapeBag.push(shapeBag.shift()); } kind = shapeBag.shift(); } lastShape = kind;
