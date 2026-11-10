@@ -527,11 +527,11 @@ function drawEmb(dt){
    顔のまわり：墨と光（髪を走る光・目の閃き・風に流れる墨・頬から垂れる墨・円相）
    ========================================================= */
 const CC = $("cardCv"), cg = CC.getContext("2d"); let CW = 0, CH = 0, CDPR = 1, ecx = 0, ecy = 0, eR = 0, IX = 0, IY = 0, ID = 0;
-let ensoT = 5, ensoC = null, ensoAge = -1, lum = null, hairPts = [], wisps = [], sweepT = 2.5, sweepAge = -1, glintT = 3.5, glintAge = -1, dripT2 = 6, cheek = [];
+let ensoT = 1.5, ensoKind = null, ensoC = null, ensoAge = -1, lum = null, hairPts = [], wisps = [], sweepT = 2.5, sweepAge = -1, glintT = 3.5, glintAge = -1, dripT2 = 6, cheek = [];
 const EYE = [.636, .264], CHEEK = [.43, .4];
 function cardSize(){ const r = CC.getBoundingClientRect(); CDPR = Math.min(devicePixelRatio || 1, 2); CW = r.width; CH = r.height; CC.width = Math.max(1, CW * CDPR); CC.height = Math.max(1, CH * CDPR);
   const e = $("embCv").parentElement.getBoundingClientRect(), c = $("embCv").getBoundingClientRect(); ecx = e.left - r.left + e.width / 2; ecy = e.top - r.top + e.height / 2; eR = e.width / 2;
-  ID = Math.min(c.width, c.height) * .84; IX = c.left - r.left + (c.width - ID) / 2; IY = c.top - r.top + (c.height - ID) / 2; ensoC = null; makeLum(); }
+  ID = Math.min(c.width, c.height) * .84; IX = c.left - r.left + (c.width - ID) / 2; IY = c.top - r.top + (c.height - ID) / 2; ensoC = null; ensoAge = -1; makeLum(); }
 function makeLum(){ // 絵の明るいところ（白い髪や線）だけを残した型
   if (!EI.complete || !EI.naturalWidth || !ID) return; const S = 360, c = document.createElement("canvas"); c.width = c.height = S; const g = c.getContext("2d");
   g.drawImage(EI, 0, 0, S, S); const d = g.getImageData(0, 0, S, S), a = d.data; hairPts = [];
@@ -540,11 +540,38 @@ function makeLum(){ // 絵の明るいところ（白い髪や線）だけを残
     const px = (k / 4) % S, py = (k / 4 / S) | 0; if (v > .7 && py < S * .5 && px > S * .2 && px < S * .75 && rnd() < .02) hairPts.push([px / S, py / S]); }
   g.putImageData(d, 0, 0); lum = c;
 }
-function makeEnso(lv){ // 円相を1回描いておき、筆の向きに少しずつ見せる
-  const S = Math.round(eR * 2.5), c = document.createElement("canvas"); c.width = c.height = S * 2; const g = c.getContext("2d"); g.scale(2, 2);
-  const pts = [], a0 = -1.75, R = eR * 1.08; for (let i = 0; i <= 180; i++) { const t = i / 180, a = a0 + TAU * .93 * t, rr = R * (1 + .02 * Math.sin(t * 11)); pts.push([S / 2 + Math.cos(a) * rr, S / 2 + Math.sin(a) * rr]); }
-  brush(g, pts, { w: eR * .13, color: fillFor(g, lv, 0, 0, S, S), dry: .85, tin: .03, tout: .4, press: t => .5 + .75 * Math.sin(Math.PI * Math.min(1, t * 1.2)), splat: 8 });
-  return { c, S, a0 };
+// 墨の形（筆の道筋）。顔の中心 ecx,ecy と半径 eR を基準にする
+function shapePaths(kind){
+  const R = eR, cx = ecx, cy = ecy, arc = (r, a0, a1, n, wob) => { const o = []; for (let i = 0; i <= n; i++) { const t = i / n, a = a0 + (a1 - a0) * t, rr = r * (1 + (wob || .02) * Math.sin(t * 11)); o.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]); } return o; };
+  if (kind === "enso") return [{ pts: arc(R * 1.08, -1.75, -1.75 + TAU * .93, 180), w: R * .13, press: t => .5 + .75 * Math.sin(Math.PI * Math.min(1, t * 1.2)) }];
+  if (kind === "issen") return [{ pts: curve([cx - R * 1.3, cy + R * .25], [cx + R * 1.3, cy - R * .15], -R * .12, 60), w: R * .17, press: t => .4 + .9 * Math.sin(Math.PI * Math.min(1, t * 1.1)) }];
+  if (kind === "cross") return [{ pts: curve([cx - R * .95, cy - R * .85], [cx + R * .95, cy + R * .85], R * .08, 50), w: R * .12 },
+                                { pts: curve([cx + R * .95, cy - R * .85], [cx - R * .95, cy + R * .85], -R * .08, 50), w: R * .12 }];
+  if (kind === "moon") return [{ pts: arc(R * 1.12, 2.2, 5.6, 120, .03), w: R * .16, press: t => Math.sin(Math.PI * t) * 1.15 }];
+  if (kind === "uzu") { const o = []; for (let i = 0; i <= 220; i++) { const t = i / 220, a = -2 + t * TAU * 1.7, r = R * (1.18 - .72 * t); o.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } return [{ pts: o, w: R * .09, press: t => 1 - .55 * t }]; }
+  /* nijuu */ return [{ pts: arc(R * 1.16, -2.4, -2.4 + TAU * .62, 130), w: R * .11 }, { pts: arc(R * .98, .6, .6 + TAU * .55, 120), w: R * .08 }];
+}
+const SHAPES = ["enso", "issen", "cross", "moon", "uzu", "nijuu"];
+let lastShape = "", shapeBag = [];
+function makeEnso(lv, kind){ // 形を1回描いておき、筆の進む順に見せる
+  if (!kind) { if (!shapeBag.length) { shapeBag = SHAPES.slice().sort(() => rnd() - .5); if (shapeBag[0] === lastShape) shapeBag.push(shapeBag.shift()); } kind = shapeBag.shift(); } lastShape = kind;
+  const c = document.createElement("canvas"); c.width = Math.max(1, CW * CDPR); c.height = Math.max(1, CH * CDPR); const g = c.getContext("2d"); g.setTransform(CDPR, 0, 0, CDPR, 0, 0);
+  const strokes = shapePaths(kind); let total = 0;
+  for (const st of strokes) { brush(g, st.pts, { w: st.w, color: fillFor(g, lv, ecx - eR, ecy - eR, ecx + eR, ecy + eR), dry: .85, tin: .03, tout: .35, press: st.press, splat: 6 });
+    st.len = 0; for (let i = 1; i < st.pts.length; i++) st.len += Math.hypot(st.pts[i][0] - st.pts[i - 1][0], st.pts[i][1] - st.pts[i - 1][1]); total += st.len; }
+  return { c, strokes, total, dur: strokes.length > 1 ? 1.1 : kind === "uzu" ? 1.2 : .85 };
+}
+let maskC = null;
+function drawShape(g, sh, prog, alpha){ // 筆の道筋に沿って、描いたところまでを見せる
+  if (!maskC) maskC = document.createElement("canvas"); if (maskC.width !== sh.c.width || maskC.height !== sh.c.height) { maskC.width = sh.c.width; maskC.height = sh.c.height; }
+  const m = maskC.getContext("2d"); m.setTransform(1, 0, 0, 1, 0, 0); m.globalCompositeOperation = "source-over"; m.clearRect(0, 0, maskC.width, maskC.height);
+  if (prog < 1) { m.setTransform(CDPR, 0, 0, CDPR, 0, 0); m.lineCap = "round"; m.lineJoin = "round"; m.strokeStyle = "#fff"; let left = prog * sh.total;
+    for (const st of sh.strokes) { if (left <= 0) break; m.lineWidth = st.w * 3.2; m.beginPath(); m.moveTo(st.pts[0][0], st.pts[0][1]); let acc = 0;
+      for (let i = 1; i < st.pts.length; i++) { const d = Math.hypot(st.pts[i][0] - st.pts[i - 1][0], st.pts[i][1] - st.pts[i - 1][1]); if (acc + d > left) { const f = (left - acc) / d; m.lineTo(st.pts[i - 1][0] + (st.pts[i][0] - st.pts[i - 1][0]) * f, st.pts[i - 1][1] + (st.pts[i][1] - st.pts[i - 1][1]) * f); acc = left; break; } acc += d; m.lineTo(st.pts[i][0], st.pts[i][1]); }
+      m.stroke(); left -= st.len; }
+    m.setTransform(1, 0, 0, 1, 0, 0); m.globalCompositeOperation = "source-in"; m.drawImage(sh.c, 0, 0); }
+  else m.drawImage(sh.c, 0, 0);
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = alpha; g.drawImage(maskC, 0, 0); g.restore();
 }
 const lightCol = (a, h) => LV === 3 ? hueCol(h ?? t * 90, 72, a) : LV === 1 ? `rgba(255,120,95,${a})` : LV === 2 ? `rgba(255,222,150,${a})` : `rgba(255,255,255,${a})`;
 let tmpC = null;
@@ -569,20 +596,16 @@ function spawnWisp(burst){ // 髪の先から墨が風にほどけていく
   if (!hairPts.length) return; const [u, v] = hairPts[(rnd() * hairPts.length) | 0];
   wisps.push({ x: IX + ID * u, y: IY + ID * v, vx: 8 + rnd() * 22 + (burst ? 30 : 0), vy: -6 - rnd() * 14, life: 2.2 + rnd() * 2, age: 0, w: 1 + rnd() * 1.8, tr: [], h: rnd() * 360, sw: rnd() * TAU });
 }
-function cardsKick(n){ for (let i = 0; i < 6 * n; i++) spawnWisp(true); sweepAge = 0; glintAge = 0; }
+function cardsKick(n){ for (let i = 0; i < 6 * n; i++) spawnWisp(true); sweepAge = 0; }
 function drawCards(dt){
   if (!CW) cardSize(); if (!lum) makeLum(); const g = cg; g.setTransform(CDPR, 0, 0, CDPR, 0, 0); g.clearRect(0, 0, CW, CH);
   // 円相
-  ensoT -= dt; if (ensoT <= 0 && ensoAge < 0) { ensoAge = 0; ensoC = makeEnso(LV); ensoT = (LV ? 7 : 12) + rnd() * 4; }
-  if (ensoAge >= 0 && ensoC) { ensoAge += dt; const draw = Math.min(1, ensoAge / .9), al = ensoAge < 2.6 ? 1 : Math.max(0, 1 - (ensoAge - 2.6) / 1.2);
-    g.save(); g.globalAlpha = al * .85; g.beginPath(); g.moveTo(ecx, ecy); g.arc(ecx, ecy, ensoC.S, ensoC.a0 - .15, ensoC.a0 - .15 + TAU * draw); g.closePath(); g.clip();
-    g.drawImage(ensoC.c, ecx - ensoC.S / 2, ecy - ensoC.S / 2, ensoC.S, ensoC.S); g.restore(); if (ensoAge > 3.9) ensoAge = -1; }
+  ensoT -= dt; if (ensoT <= 0 && ensoAge < 0) { ensoAge = 0; ensoC = makeEnso(LV, ensoKind); ensoKind = null; ensoT = (LV ? 3.6 : 4.6) + rnd() * 2; }
+  if (ensoAge >= 0 && ensoC) { ensoAge += dt; const draw = Math.min(1, ensoAge / ensoC.dur), hold = ensoC.dur + 1.3, al = ensoAge < hold ? 1 : Math.max(0, 1 - (ensoAge - hold) / .9);
+    drawShape(g, ensoC, draw, al * .85); if (ensoAge > hold + .9) ensoAge = -1; }
   // 髪を走る光
   sweepT -= dt; if (sweepT <= 0 && sweepAge < 0) { sweepAge = 0; sweepT = (LV ? 3.5 : 6) + rnd() * 3; }
   if (sweepAge >= 0) { sweepAge += dt; const k = sweepAge / 1.6; if (k >= 1) sweepAge = -1; else hairSweep(g, k); }
-  // 目元の閃き（髪の光が通ったあとに）
-  glintT -= dt; if (glintT <= 0 && glintAge < 0) { glintAge = 0; glintT = (LV ? 4 : 7) + rnd() * 4; }
-  if (glintAge >= 0) { glintAge += dt; const k = glintAge / .7; if (k >= 1) glintAge = -1; else eyeGlint(g, k); }
   // 風にほどける墨
   if (rnd() < dt * (LV ? 7 : 4)) spawnWisp(false);
   g.lineCap = "round";
@@ -714,7 +737,7 @@ function render(changed){
   cl.toggle("lv1", n === 1); cl.toggle("lv2", n === 2); cl.toggle("lv3", n === 3);
   if (n) { if (n !== curLv && curLv >= 0) { const se = $("seal"); se.classList.remove("stamp"); void se.offsetWidth; se.classList.add("stamp"); setTimeout(() => { const [sx, sy] = centerOf(se); burst(sx, sy, n, 26, .7); }, 230); } $("seal").textContent = LV_NAME[n]; }
   if (n !== curLv) { if (curLv < 0 && !W) LV = n; else { setBg(n); } LV = n; if (W) paintAll(); }
-  if (curLv >= 0 && n > curLv) { cutin(n); cardsKick(6); ensoT = 0; ensoAge = -1; }
+  if (curLv >= 0 && n > curLv) { cutin(n); cardsKick(6); ensoT = 0; ensoAge = -1; ensoKind = "enso"; }
   curLv = n;
   if (changed) changed.forEach(id => bump($(id)));
 }
